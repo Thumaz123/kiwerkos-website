@@ -1,0 +1,55 @@
+# ════════════════════════════════════════════════════════════════════════════
+# KIWERK OS · Serverkonfiguration (Apache, ALL-INKL)
+#
+# Zweck ist ausschliesslich Transportsicherheit nach Art. 32 DSGVO: Ohne
+# Weiterleitung bleibt die Seite auch ueber http erreichbar, und dann laufen
+# IP-Adresse und Referrer im Klartext ueber die Leitung. Nichts hier veraendert
+# Inhalt, Layout oder Verhalten der Seite.
+#
+# VORAUSSETZUNG: Im KAS muss fuer die Domain ein SSL-Zertifikat aktiv sein
+# (ALL-INKL stellt Let's Encrypt kostenlos bereit). Ist das nicht der Fall,
+# erzeugt die Weiterleitung unten eine Endlosschleife.
+# ════════════════════════════════════════════════════════════════════════════
+
+# ── Eine einzige gueltige Adresse: https://www.kiwerk-os.de ──
+# Das ist auch die Adresse, die in jedem canonical und jedem og:url steht.
+# Ohne diese Regeln liefert der Server dieselbe Seite unter bis zu vier
+# Adressen aus (mit und ohne www, http und https) und widerspricht sich selbst.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # http auf https.
+  # Zwei Bedingungen, weil IONOS SSL teilweise auf einem vorgelagerten Proxy
+  # beendet: Dahinter ist %{HTTPS} nicht gesetzt, obwohl der Besucher laengst
+  # per https verbunden ist. Nur %{HTTPS} zu pruefen ergaebe dort eine
+  # Endlosschleife. Beide Bedingungen muessen zutreffen, damit umgeleitet wird.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^(.*)$ https://www.kiwerk-os.de/$1 [R=301,L]
+
+  # kiwerk-os.de auf www.kiwerk-os.de
+  RewriteCond %{HTTP_HOST} !^www\. [NC]
+  RewriteRule ^(.*)$ https://www.kiwerk-os.de/$1 [R=301,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  # HSTS: Der Browser merkt sich https und fragt gar nicht erst im Klartext an.
+  # BEWUSST AUS. Die Zeile erst entkommentieren, wenn https live nachweislich
+  # laeuft. Ein Jahr laesst sich nicht zurueckdrehen: Faellt das Zertifikat
+  # danach aus, ist die Seite fuer jeden frueheren Besucher unerreichbar, und
+  # zwar ohne Umgehungsmoeglichkeit ueber http.
+  # Header always set Strict-Transport-Security "max-age=31536000"
+
+  # Kein MIME-Raten, kein Einbetten in fremde Rahmen, sparsamer Referrer.
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Die Seite braucht weder Kamera noch Mikrofon noch Standort.
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+</IfModule>
+
+# ── Kein Verzeichnislisting, falls irgendwo eine index.html fehlt ──
+<IfModule mod_autoindex.c>
+  Options -Indexes
+</IfModule>

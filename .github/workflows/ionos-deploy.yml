@@ -1,0 +1,53 @@
+name: IONOS SFTP deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'check = nur lesen, test = Testverzeichnis, production = live'
+        type: choice
+        options: [check, test, production]
+        default: check
+        required: true
+      source_ref:
+        description: 'Optional: Commit-SHA einer geprüften Website-Version'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ionos-sftp
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Workflow-Code auschecken
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Freigegebene Website-Version auschecken
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          path: site
+          persist-credentials: false
+      - name: SFTP-Bibliothek installieren
+        run: sudo apt-get update && sudo apt-get install -y python3-paramiko
+      - name: Website mit KIWERK-Build prüfen
+        run: /usr/bin/python3 site/build_deploy.py --check
+      - name: Verbindung prüfen oder Dateien übertragen
+        env:
+          DEPLOY_MODE: ${{ inputs.mode }}
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_USER: ${{ secrets.SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_KNOWN_HOSTS: ${{ secrets.SFTP_KNOWN_HOSTS }}
+          SFTP_WEBROOT: ${{ secrets.SFTP_WEBROOT }}
+          SFTP_TEST_ROOT: ${{ secrets.SFTP_TEST_ROOT }}
+        run: /usr/bin/python3 .github/scripts/ionos_sftp.py

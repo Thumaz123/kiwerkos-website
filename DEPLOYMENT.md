@@ -1,0 +1,11 @@
+# KIWERK OS: Veröffentlichung über IONOS
+
+Das GitHub-Repository enthält die zur Veröffentlichung vorbereitete Website in `landingpage/`. `build_deploy.py` prüft die Website vor dem SFTP-Zugriff. Übertragen werden nur Dateien aus `landingpage/`; interne Projektunterlagen und Zugangsdaten gehören nicht hierher.
+
+Der Workflow **IONOS SFTP deployment** wird ausschließlich manuell über **Actions → IONOS SFTP deployment → Run workflow** gestartet. `check` prüft die SFTP-Verbindung und den Webroot lesend, `test` überträgt in ein getrenntes Testverzeichnis und `production` überschreibt Website-Dateien im bestätigten Webroot. Ein Push oder Merge startet keine Veröffentlichung. Jeder produktive Lauf benötigt die ausdrückliche Freigabe des Eigentümers. Gleichzeitige Läufe werden verhindert.
+
+Secrets: `SFTP_HOST`, `SFTP_PORT`, `SFTP_USER`, `SFTP_PASSWORD`, `SFTP_KNOWN_HOSTS`, `SFTP_WEBROOT`, `SFTP_TEST_ROOT`. Der Hostschlüssel muss unabhängig anhand der offiziellen IONOS-Fingerabdrücke geprüft werden. Die Domain ist laut IONOS mit `/kiwerk-os/deploy` verbunden; die SFTP-Pfadansicht muss beim Verbindungscheck bestätigt werden. Der Testordner muss außerhalb aller öffentlichen Webroots liegen und mit der Live-Seite weder identisch noch verschachtelt sein. Einen Testordner und Test-Uploads nur mit separater Freigabe anlegen.
+
+Vor der ersten Veröffentlichung eine vollständige externe Sicherung des bisherigen Webroots einschließlich versteckter Dateien erstellen und ihre Wiederherstellbarkeit prüfen. Der Upload löscht keine Dateien, ist aber nicht atomar: Ein Abbruch kann alte und neue Dateien mischen. Zuerst werden die Assets übertragen, HTML-Seiten folgen, `index.html` zuletzt. Bei Bedarf kann nach ausdrücklicher Freigabe eine frühere geprüfte Commit-SHA als `source_ref` erneut veröffentlicht werden; zusätzliche Dateien bleiben dabei erhalten. Eine externe Sicherung bleibt für eine vollständige Wiederherstellung erforderlich.
+
+Nach Änderungen zuerst `python build_deploy.py --check` ausführen, das Ergebnis prüfen und erst dann committen. Auf die feste Whitelist des Buildskripts und den Schutz persönlicher Informationen achten. Das Repository ist öffentlich: Jeder Push veröffentlicht seine Inhalte und Git-Historie.

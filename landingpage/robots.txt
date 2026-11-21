@@ -1,0 +1,7 @@
+# KIWERK OS · www.kiwerk-os.de
+# Alles darf indexiert werden; es gibt keine geschützten Bereiche.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.kiwerk-os.de/sitemap.xml

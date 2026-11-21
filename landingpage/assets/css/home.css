@@ -1,0 +1,177 @@
+.wow-page{--paper:#f7efe1;--paper-deep:#efe5d4;scroll-behavior:auto}
+body{margin:0;background:var(--paper)}
+.film-nav{position:fixed;inset:0 0 auto;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 4.5vw;background:var(--paper);border-bottom:1px solid #22262a25;font-size:14px}
+.brand{font-size:24px;font-weight:850;letter-spacing:-.035em;text-decoration:none}.brand em{font-style:normal;color:var(--signal-ink)}
+.film-nav a{display:inline-flex;align-items:center;min-height:44px}
+.film-nav nav{display:flex;gap:24px;align-items:center}.film-nav a{color:var(--ink);text-underline-offset:4px}.film-nav .film-cta{padding:10px 16px;background:var(--ink);color:var(--paper);text-decoration:none}
+.film-story{padding-top:72px}.film-stage{position:relative;background:var(--paper);overflow:hidden}.film-poster{width:100%;display:block}.film-stage canvas{width:100%;height:auto;display:none}
+.film-chapters{max-width:1280px;margin:auto}.film-chapter{padding:48px 4.5vw;border-bottom:1px solid #22262a25;scroll-margin-top:90px}.film-chapter .wow-copy{max-width:660px;padding:0;background:transparent;border:0;box-shadow:none}.film-chapter h1,.film-chapter h2{font-size:clamp(34px,3.1vw,46px)}.film-chapter h3{font-size:17px;line-height:1.3;margin-top:20px}.film-chapter p{font-size:16px;line-height:1.6;margin-top:18px}.film-chapter .wow-intro{font-size:18px;margin-top:20px!important}.film-chapter .wow-textlink{margin-top:15px}.film-chapter-still{display:block;width:100%;height:auto;margin-bottom:32px}
+.film-caption{display:flex;justify-content:space-between;gap:20px;padding:14px 4.5vw;background:var(--paper);font-size:12px}
+.wow-programme{min-height:56.25vw;align-content:center;box-sizing:border-box;scroll-margin-top:0}
+.film-footer{display:flex;justify-content:space-between;gap:20px;padding:32px 4.5vw;font-size:13px}.film-footer a{color:inherit}
+.film-active .film-story{height:1000vh;padding-top:0}.film-active .film-stage{position:sticky;top:0;height:100vh}.film-active .film-stage canvas{display:block}.film-active .film-poster{display:none}.film-active .film-caption{position:absolute;inset:auto 0 0}.film-active #inhalt{position:relative;z-index:2;margin-top:-100vh;opacity:var(--content-opacity,0);transform:translateY(var(--content-shift,0px));background:var(--paper);pointer-events:none}.film-active.content-ready #inhalt{pointer-events:auto}
+.film-active .film-chapters{position:absolute;inset:0;max-width:none;pointer-events:none}
+.film-active .film-chapter{position:absolute;top:clamp(96px,11vh,130px);left:4.5vw;width:min(420px,38vw);padding:26px 30px;border:0;border-radius:3px 24px 24px 24px;background:var(--paper);opacity:var(--chapter-opacity,0);visibility:hidden;transform:translateY(var(--chapter-shift,0px));pointer-events:none}
+.film-active .film-chapter[data-visible="true"]{visibility:visible;pointer-events:auto}.film-active .film-chapter[data-side="right"]{left:auto;right:4.5vw;border-radius:24px 3px 24px 24px}.film-active .film-chapter-still{display:none}
+.film-active .film-chapter .wow-facts{margin-top:18px}.film-active .film-chapter .wow-facts>div{padding:9px 0}.film-active .film-chapter .wow-main-cta{margin-top:16px}.film-active .film-chapter .wow-small-link{padding-block:8px}
+/* The 1280 × 720 zoom-matched composition below is for the texture-capture tool
+   (.screen-capture, see docs/superpowers/previews/.../prepare_preview.py) only.
+   It must not reach the live #inhalt section: unscoped, it grows with
+   innerWidth/1280 forever and blows up type on wide desktop screens (2× at a
+   2560 px window), while every other section stays inside its normal
+   wow-real.css clamp() scale. Scoped to .screen-capture so real visitors never
+   see it. */
+.screen-capture .wow-programme{width:1280px;height:720px;min-height:720px;padding:90px 57.6px 105px;grid-template-columns:44% 56%;gap:0}
+.screen-capture .wow-programme h2{font-size:46.08px}.screen-capture .wow-programme h3{font-size:23.04px}
+@media(min-width:901px) and (max-height:820px){.film-active .film-chapter{top:92px;padding:20px 24px;width:min(430px,40vw)}.film-active .film-chapter h1,.film-active .film-chapter h2{font-size:34px}.film-active .film-chapter p{font-size:14px;margin-top:13px}.film-active .film-chapter .wow-intro{font-size:16px;margin-top:12px!important}.film-active .film-chapter .wow-facts{margin-top:12px}.film-active .film-chapter .wow-facts>div{padding:7px 0}}
+@media(max-width:900px){.film-nav{padding:12px 20px}.film-nav nav{gap:12px;font-size:12px}.film-nav nav>a:first-child{display:none}.brand{font-size:21px}.film-chapter{padding:36px 24px}.film-caption{font-size:10px}.film-footer{display:block}.film-footer span{display:block;margin-top:16px}.wow-programme{min-height:0}}
+@media(prefers-reduced-motion:reduce){.film-story{height:auto!important}}
+
+/* Isolated experiment. The continuous camera preview remains unchanged. */
+.station-controls{display:none}
+.film-active .film-story{height:200svh}
+.film-active .film-stage{height:100svh}
+.film-active .film-chapter{max-height:calc(100svh - 230px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.film-active .station-controls{position:absolute;inset:auto 4.5vw 58px;display:flex;align-items:center;gap:16px;z-index:4;width:max-content;max-width:91vw;background:var(--paper);padding:6px 10px;border:1px solid #22262a40;border-radius:6px}
+.station-controls button{font:inherit;font-size:14px;font-weight:700;min-height:44px;padding:8px 12px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.station-controls button:disabled{opacity:.4;cursor:default}
+.station-controls button:focus-visible{outline:2px solid var(--signal-ink);outline-offset:2px}
+#station-count{font-size:13px;min-width:36px;text-align:center;font-variant-numeric:tabular-nums}
+.film-active .film-chapter[data-visible="true"]{transform:none}
+.film-active.is-travelling .film-chapter{pointer-events:none}
+.home-board-layer{position:absolute;top:64px;left:0;width:100%;height:calc(100dvh - 64px);pointer-events:none;overflow:hidden}
+.home-board-layer[hidden]{display:none}
+.home-board-page{position:absolute;top:0;left:0;overflow:hidden;transform-origin:0 0;background:var(--paper-deep)}
+/* Measured from the render: the board reads at about 81 % at the top and 86 % at the bottom of the HTML paper tone. */
+.home-board-page::after,.film-active.is-mobile-portal #inhalt::after{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(#d0d0d0,#dcdcdc);mix-blend-mode:multiply;pointer-events:none}
+.film-active.is-mobile-portal #inhalt::after{z-index:1;height:var(--board-height,0);opacity:var(--board-shade,0)}
+.film-active .film-stage canvas.home-board-occluder{pointer-events:none}
+.film-active .film-stage canvas.home-board-occluder[hidden]{display:none}
+.film-active .home-board-page .wow-programme{width:100%;height:auto;min-height:100svh;zoom:1}
+.film-active .film-stage>canvas{transform-origin:0 0}
+.film-active.is-mobile-portal #inhalt{transform-origin:0 0;transform:translateY(var(--content-shift,0px)) var(--screen-transform);will-change:transform,clip-path,opacity}
+.film-active.is-mobile-portal .station-controls,.film-active.is-mobile-portal .film-caption{opacity:0;pointer-events:none}
+@media(max-width:900px){
+ .film-active .film-story{height:200dvh}
+ .film-active .film-stage{height:100dvh}
+ .film-active .film-stage canvas{position:absolute;top:64px;width:100%;height:calc(100dvh - 64px);object-fit:cover;object-position:center top;touch-action:pinch-zoom}
+ .film-active .film-chapter,.film-active .film-chapter[data-side="right"]{top:auto;bottom:104px;left:16px;right:16px;width:auto;max-height:46dvh;padding:18px 20px;border-radius:3px 20px 20px 20px;box-shadow:0 8px 28px #17191625;touch-action:pinch-zoom}
+ .film-active .film-chapter.has-overflow{touch-action:pan-y pinch-zoom}
+ .film-active .film-chapter h1,.film-active .film-chapter h2{font-size:clamp(25px,7vw,34px);line-height:1.03}
+ .film-active .film-chapter h3{font-size:15px;margin-top:16px}
+ .film-active .film-chapter p{font-size:15px;line-height:1.5;margin-top:12px}
+ .film-active .film-chapter .wow-intro{font-size:16px;margin-top:14px!important}
+ .film-active .film-chapter .wow-textlink{font-size:13px;margin-top:12px}
+ .film-active .station-controls{left:16px;right:16px;bottom:25px;width:auto;max-width:none;justify-content:space-between;gap:8px;padding:2px 6px}
+ .film-active .film-caption{padding:6px 16px;font-size:9px}
+ .film-active .wow-programme{width:auto;height:auto;min-height:100svh;padding:100px 24px 56px;grid-template-columns:1fr;gap:30px;zoom:1}
+ .film-active .wow-programme h2{font-size:34px}
+ .film-active .wow-programme h3{font-size:22px}
+ .film-active #inhalt{margin-top:-100dvh}
+ .film-nav nav>a:first-child{display:inline-flex;font-size:11px;max-width:64px;line-height:1.2}
+ .film-nav nav{gap:8px}
+ .film-nav .film-cta{padding:8px}
+ .film-nav{padding:10px 16px;gap:10px}
+ .brand{font-size:19px;white-space:nowrap}
+}
+@media(max-width:900px) and (orientation:landscape){
+ .film-active .film-stage canvas{object-position:center}
+ .film-active .film-chapter,.film-active .film-chapter[data-side="right"]{top:auto;bottom:104px;left:16px;right:54%;max-height:calc(100dvh - 180px);padding:14px 18px}
+ .film-active .film-chapter h1,.film-active .film-chapter h2{font-size:25px}
+}
+
+/* Comparison: leave both displays visible and use the tabletop for the text. */
+@media(min-width:901px){
+ .film-active #wow-ausprobieren{top:auto;bottom:132px;left:4.5vw;right:4.5vw;width:auto;max-height:calc(100svh - 230px);padding:20px 26px}
+ .film-active #wow-ausprobieren .wow-copy{max-width:none;display:grid;grid-template-columns:31% 1fr;column-gap:32px;row-gap:8px}
+ .film-active #wow-ausprobieren h2{grid-column:1;grid-row:1 / 5;font-size:34px}
+ .film-active #wow-ausprobieren h3,.film-active #wow-ausprobieren p,.film-active #wow-ausprobieren a{grid-column:2;margin-top:0}
+ .film-active #wow-ausprobieren h3{font-size:16px}
+ .film-active #wow-ausprobieren p{font-size:15px;line-height:1.45}
+ .film-active #wow-ausprobieren .wow-note{font-size:12px}
+ .film-active #wow-ausprobieren .wow-textlink{font-size:13px;justify-self:start;padding-bottom:4px}
+}
+
+/* Integrated start page: navigation, concise copy and readable small screens. */
+.home-menu{position:relative}
+.film-nav a[href="#inhalt"]{column-gap:.25em}
+.film-nav .film-cta{gap:.2em}
+.film-nav .film-reminder{column-gap:.25em}
+.film-nav .brand{column-gap:.18em}
+.home-menu summary{min-height:44px;display:flex;align-items:center;cursor:pointer;padding:0 8px;font-weight:700;list-style:none}
+.home-menu summary::-webkit-details-marker{display:none}
+.home-menu summary::after{content:'+';margin-left:6px}
+.home-menu[open] summary::after{content:'−'}
+.film-nav .home-menu nav{display:flex;flex-direction:column;align-items:stretch;gap:0;position:absolute;top:calc(100% + 12px);right:0;width:240px;max-width:calc(100vw - 32px);padding:12px 18px;background:var(--paper);border:1px solid var(--ink);box-shadow:0 8px 20px #22262a18}
+.film-nav .home-menu nav a{min-height:44px;border-bottom:1px solid #22262a25;text-decoration:none;font-size:16px;max-width:none}
+.film-nav .home-menu nav a:last-child{border-bottom:0}
+.home-menu:not([open]) nav{display:none}
+.film-nav .home-menu nav{max-height:calc(100svh - 84px);overflow-y:auto;overscroll-behavior:contain}
+.film-nav a:focus-visible,.home-menu summary:focus-visible{outline:2px solid var(--signal-ink);outline-offset:3px}
+.home-ideas{padding-left:20px;margin-top:12px;line-height:1.6;font-size:16px}
+.home-ideas li+li{margin-top:5px}
+.chapter-scroll-hint{position:absolute;bottom:120px;left:4.5vw;z-index:4;margin:0;padding:3px 8px;background:var(--paper);color:var(--ink);font-size:12px;font-weight:650}
+.chapter-scroll-hint[hidden]{display:none}
+.film-active #wow-ausprobieren h2{grid-row:1 / 4}
+.film-stage{height:auto}
+@media(max-width:900px){
+ .film-nav{padding:10px 12px;gap:8px}
+ .film-nav nav{gap:6px}
+ .film-nav .home-full{display:none}
+ .home-request{text-transform:capitalize}
+ .film-nav nav>a:first-child{font-size:12px;max-width:none}
+ .brand{font-size:19px}
+ .home-menu summary{padding:0 4px;font-size:12px}
+ .film-active .film-chapter,.film-active .film-chapter[data-side="right"]{bottom:104px;padding:18px 20px}
+ .home-ideas{font-size:15px;line-height:1.5;margin-top:8px;padding-left:18px}
+ .home-ideas li+li{margin-top:6px}
+ .chapter-scroll-hint{bottom:79px;left:18px;font-size:11px;padding:2px 4px}
+ .film-active .film-caption{height:22px;padding:4px 12px;gap:6px;align-items:center;white-space:nowrap;font-size:9px}
+ .film-active .film-chapter .wow-main-cta{font-size:13px;min-height:44px;padding:10px 12px}
+ .film-active .film-chapter .wow-small-link{font-size:13px;padding-block:6px}
+}
+@media(max-width:900px) and (max-height:700px) and (orientation:portrait){
+ .film-active .film-chapter,.film-active .film-chapter[data-side="right"]{padding:14px 16px}
+ .film-active .film-chapter h1,.film-active .film-chapter h2{font-size:25px}
+ .film-active .film-chapter p{margin-top:10px}
+ .film-active .film-chapter .wow-intro{font-size:15px;margin-top:10px!important}
+ .film-active .film-chapter .wow-textlink{margin-top:10px}
+ .film-active .film-chapter .wow-facts{margin-top:10px}
+ .film-active .film-chapter .wow-facts>div{padding:5px 0}
+ .film-active .film-chapter .wow-facts dt{font-size:11px}
+ .film-active .film-chapter .wow-facts dd{font-size:14px}
+}
+
+/* Keep the meeting card readable without nested scrolling on ordinary phones. */
+@media(max-width:900px) and (orientation:portrait){
+ .film-active #wow-treffen{padding:14px 18px;max-height:calc(100dvh - 180px)}
+ .film-active #wow-treffen h2{font-size:26px;line-height:1.1}
+ .film-active #wow-treffen h2 br{display:none}
+ .film-active #wow-treffen h2 em::before{content:'\00a0'}
+ .film-active #wow-treffen .wow-facts{margin-top:12px}
+ .film-active #wow-treffen .wow-facts>div{padding:6px 0;grid-template-columns:42px 1fr;gap:10px}
+ .film-active #wow-treffen .wow-facts dt{font-size:12px}
+ .film-active #wow-treffen .wow-facts dd{font-size:15px}
+ .film-active #wow-treffen .wow-facts time{font-size:22px}
+ .film-active #wow-treffen .wow-facts dd span{font-size:13px;margin-top:2px}
+ .film-active #wow-treffen .wow-note{font-size:13px;line-height:1.4;margin-top:9px}
+ .film-active #wow-treffen .wow-main-cta{margin-top:10px;font-size:12px;padding:10px;min-height:44px}
+ .film-active #wow-treffen .wow-small-link{padding-block:8px;font-size:12px}
+}
+
+/* The camera stage clips artwork; it must never become an implicit scroll container. */
+.film-active .film-stage{overflow:clip}
+
+/* A compact welcome leaves the room visible on phones. */
+.home-intro-short{display:none}
+@media(max-width:900px){
+ #wow-ankommen .home-intro-full,#wow-ankommen .event-lockup,#wow-ankommen .wow-intro{display:none}
+ #wow-ankommen .home-intro-short{display:block}
+ .film-active #wow-ankommen{bottom:84px;padding:14px 16px;max-height:none;overflow:visible}
+ .film-active #wow-ankommen h1{font-size:28px;line-height:1.08;text-wrap:initial}
+ .film-active #wow-ankommen p{font-size:16px;line-height:1.4;margin-top:10px}
+ .film-active #wow-ankommen .wow-textlink{margin-top:8px;padding-block:8px;min-height:44px;font-size:14px}
+}
+@media(max-width:360px){
+ .film-active #wow-ankommen h1{font-size:26px}
+}

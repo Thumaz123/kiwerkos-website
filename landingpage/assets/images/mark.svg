@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 495" width="500" height="495" role="img" aria-label="KIWERK OS">
+  <!-- Sprechblase mit Zipfel. Maße aus Content/mark_standalone.png gemessen:
+       Korpus 500x430, Eckradius 85, Teilung genau mittig (y=215),
+       drei Punkte r=28,5 bei x=150/250/350 auf y=107.
+       Korpus und Zipfel sind EINE Kontur, kein Rechteck plus Dreieck: im
+       Original kippt die Eckrundung selbst in die Zipfelspitze, Übergänge bei
+       (42,45|418,6) und (90,3|430). Getrennt gebaut reißt es an der Naht. -->
+  <path d="M85 0H415A85 85 0 0 1 500 85V345A85 85 0 0 1 415 430H90.3L0 495L42.45 418.6A85 85 0 0 1 0 345V85A85 85 0 0 1 85 0Z" fill="#F4571B"/>
+  <path d="M85 0h330a85 85 0 0 1 85 85v130H0V85A85 85 0 0 1 85 0Z" fill="#22262A"/>
+  <circle cx="150" cy="107" r="28.5" fill="#F7EFE1"/>
+  <circle cx="250" cy="107" r="28.5" fill="#F7EFE1"/>
+  <circle cx="350" cy="107" r="28.5" fill="#F7EFE1"/>
+</svg>

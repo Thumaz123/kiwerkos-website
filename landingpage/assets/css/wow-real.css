@@ -1,0 +1,127 @@
+/* KIWERK OS: one room, many perspectives. */
+.wow-page{scroll-behavior:auto;--wow-header:76px;--wow-edge:clamp(24px,4.5vw,76px);scrollbar-color:var(--ink-soft) var(--paper)}
+.wow-page body{overflow-x:clip}
+.wow-page :focus-visible{outline:2px solid var(--ink);outline-offset:5px;box-shadow:0 0 0 3px var(--paper)}
+.wow-page ::selection{background:var(--ink);color:var(--paper)}
+.wow-page .masthead{background:var(--paper);border-color:#22262a26;padding-inline:var(--wow-edge);isolation:isolate}
+.wow-page.js .masthead{position:fixed;inset:0 0 auto}
+.wow-page.js body{padding-top:var(--wow-header)}
+.wow-page .navtoggle,.wow-page .masthead .btn{min-height:44px}
+.wow-page .btn{white-space:normal;min-height:48px}
+.wow-page svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter}
+.wow-page h1,.wow-page h2,.wow-page h3,.wow-page p{margin:0}
+.wow-page h1,.wow-page h2{font-variation-settings:"wdth" 75,"wght" 850;letter-spacing:-.035em;line-height:1.02;text-wrap:balance}
+.wow-page em{font-style:normal;color:var(--signal-ink)}
+.wow-page section[id],.wow-alias{scroll-margin-top:calc(var(--wow-header) + 24px)}
+.wow-story{position:relative;display:grid;isolation:isolate}
+.wow-stage{grid-area:1/1;position:sticky;top:var(--wow-header);align-self:start;height:calc(100svh - var(--wow-header));pointer-events:none;visibility:hidden;z-index:0;overflow:hidden}
+#wow-canvas{display:block;width:100%;height:100%;outline:none}
+.wow-stage-caption{position:absolute;right:24px;bottom:24px;color:var(--ink);background:var(--paper);padding:9px 12px;font-size:.65rem;letter-spacing:.045em;text-transform:uppercase}
+.wow-stage-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:#22262a18}
+.wow-stage-progress span{display:block;width:100%;height:100%;background:var(--signal);transform:scaleX(var(--wow-progress,0));transform-origin:left}
+.wow-chapters{grid-area:1/1;position:relative;z-index:1;pointer-events:none}
+.wow-chapter{position:relative;display:grid;grid-template-columns:42% 58%;align-items:center;gap:0;padding:70px var(--wow-edge);border-bottom:1px solid #22262a20}
+.wow-copy{pointer-events:auto;position:relative;z-index:2;max-width:470px;padding:28px 40px 28px 0}
+.wow-hero{padding-top:40px;padding-bottom:85px}
+.wow-hero h1{font-size:clamp(48px,4.6vw,72px);font-variation-settings:"wdth" 70,"wght" 850}
+.wow-intro{max-width:32ch;font-size:clamp(18px,1.5vw,23px);line-height:1.5;margin-top:27px!important}
+.wow-welcome{max-width:38ch;font-size:.86rem;line-height:1.6;color:var(--ink-soft);margin-top:18px!important}
+.wow-textlink{display:inline-flex;align-items:center;gap:14px;min-height:44px;color:var(--ink);font-variation-settings:"wght" 700,"wdth" 95;font-size:.83rem;text-decoration:none;text-underline-offset:6px;padding-block:10px;border-bottom:1px solid var(--ink)}
+.wow-textlink:hover{text-decoration:underline}
+.wow-textlink svg,.wow-orange-cta svg{width:22px;height:22px;flex:none}
+.wow-hero .wow-textlink{margin-top:25px}
+.wow-hero-bottom{position:absolute;bottom:22px;left:var(--wow-edge);right:var(--wow-edge);display:flex;justify-content:space-between;gap:20px;font-size:.67rem;color:var(--ink-soft)}
+.wow-world h2,.wow-meeting h2{font-size:clamp(48px,5vw,80px)}
+.wow-world h3{font-size:.9rem;font-variation-settings:"wdth" 95,"wght" 700;margin:28px 0 12px}
+.wow-world .wow-copy>p{max-width:36ch;font-size:.94rem;line-height:1.65}
+.wow-note{font-size:.77rem!important;line-height:1.55!important;color:var(--ink-soft);margin-top:15px!important}
+.wow-world .wow-textlink{margin-top:22px}
+.wow-transition h2{font-size:clamp(38px,4vw,62px)}
+.wow-transition p{font-size:1rem;line-height:1.6;max-width:35ch;margin-top:20px}
+.wow-alias{position:absolute;top:0}
+.wow-facts{margin:28px 0 0;max-width:440px}
+.wow-facts>div{display:grid;grid-template-columns:55px 1fr;border-top:1px solid #22262a35;padding:13px 0;gap:12px}
+.wow-facts dt{font-size:.72rem;color:var(--ink-soft);padding-top:3px}
+.wow-facts dd{margin:0;font-variation-settings:"wght" 650,"wdth" 95;font-size:1.02rem}
+.wow-facts dd span{display:block;font-size:.75rem;font-variation-settings:"wght" 450,"wdth" 100;margin-top:3px;color:var(--ink-soft)}
+.wow-facts time{font-variant-numeric:tabular-nums;font-size:1.4rem}
+.wow-main-cta{margin-top:23px;font-size:.74rem;max-width:100%}
+.wow-small-link{display:block;color:inherit;font-size:.77rem;text-underline-offset:4px;line-height:1.6;padding-block:12px;min-height:44px}
+.wow-static{display:block;min-width:0;width:100%;align-self:center;pointer-events:none}
+.wow-static-captioned{margin:0}
+.wow-static-captioned figcaption{margin-top:10px;font-size:.69rem;color:var(--ink-soft)}
+.wow-static img{display:block;width:100%;height:auto;aspect-ratio:8/5;object-fit:cover}
+.wow-page[data-wow-state="enhanced"] .wow-stage{visibility:visible}
+.wow-page[data-wow-state="enhanced"] .wow-static{visibility:hidden}
+.wow-page[data-wow-state="enhanced"] .wow-chapter{min-height:115svh;border:0}
+.wow-page[data-wow-state="enhanced"] .wow-hero{min-height:calc(100svh - var(--wow-header))}
+.wow-page[data-wow-state="enhanced"] .wow-copy{position:sticky;top:calc(var(--wow-header) + 30px);align-self:start;background:var(--paper);padding:32px;max-width:440px}
+.wow-page[data-wow-state="enhanced"] .wow-hero .wow-copy{margin-left:calc(-1 * var(--wow-edge));padding-left:var(--wow-edge);max-width:510px}
+.wow-page[data-wow-state="enhanced"] .wow-hero-bottom{right:auto;background:var(--paper);padding:10px 14px;gap:30px}
+.wow-page[data-wow-state="enhanced"] .wow-transition{align-items:end;min-height:95svh;padding-bottom:70px}
+.wow-page[data-wow-state="enhanced"] .wow-transition .wow-copy{position:relative;top:auto;align-self:end;max-width:530px;padding:24px 30px}
+.wow-page[data-wow-state="enhanced"] .wow-transition h2{font-size:clamp(36px,3.5vw,52px)}
+.wow-page[data-wow-state="enhanced"] .wow-meeting{min-height:125svh}
+.wow-programme{padding:90px var(--wow-edge) 105px;background:var(--paper-deep);display:grid;grid-template-columns:44% 56%;border-top:1px solid #22262a25}
+.wow-programme h2{font-size:clamp(32px,3.6vw,56px);max-width:12ch}
+.wow-programme-head>p{margin-top:22px;font-size:.88rem;line-height:1.55}
+.wow-programme-list article{display:flex;gap:23px;padding:26px 0;border-top:1px solid #22262a35}
+.wow-programme-list article:first-child{padding-top:0;border-top:0}
+.wow-programme-list article>span{font-size:1.6rem;color:var(--signal-ink);line-height:1.2}
+.wow-programme-list h3{font-size:clamp(18px,1.8vw,25px);font-variation-settings:"wdth" 90,"wght" 700;line-height:1.2}
+.wow-programme-list p{margin-top:12px;max-width:48ch;color:var(--ink-soft);font-size:.9rem;line-height:1.6}
+.wow-recap{padding:100px var(--wow-edge) 110px;display:grid;grid-template-columns:1.2fr .8fr;gap:40px 65px}
+.wow-recap-title{grid-column:1/-1;display:flex;justify-content:space-between;gap:32px;align-items:end}
+.wow-recap-title h2{font-size:clamp(42px,5.3vw,82px)}
+.wow-recap-title h2 em{color:var(--signal-ink)}
+.wow-recap-title>p{font-size:.75rem;color:var(--ink-soft);padding-bottom:5px}
+.wow-recap-photo{margin:0}
+.wow-recap-photo img{display:block;width:100%;height:auto}
+.wow-recap-photo figcaption{font-size:.69rem;color:var(--ink-soft);margin-top:11px}
+.wow-recap-text{align-self:center}
+.wow-recap-text>p{font-size:clamp(17px,1.6vw,23px);line-height:1.5}
+.wow-recap-links{margin-top:24px}
+.wow-invitation{position:relative;background:var(--ink);color:var(--paper);padding:90px var(--wow-edge) 95px;display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:45px;overflow:hidden}
+.wow-invitation h2{font-size:clamp(64px,9vw,144px);position:relative}
+.wow-invitation h2 em{color:var(--signal)}
+.wow-invitation-copy{position:relative;padding-bottom:5px}
+.wow-invitation-copy>p{font-size:1.25rem;line-height:1.5;margin-bottom:26px}
+.wow-invitation .wow-orange-cta{background:var(--signal);color:var(--ink);font-size:.77rem;border-color:var(--signal);gap:20px}
+.wow-orange-cta:hover{background:var(--paper);border-color:var(--paper)}
+.wow-invitation .wow-small-link{color:var(--paper);margin-top:8px}
+.wow-invitation-mark{position:absolute;right:5%;top:22%;display:flex;gap:24px;opacity:.055}
+.wow-invitation-mark i{width:90px;height:90px;background:var(--paper);border-radius:50%}
+.wow-footer{padding:35px var(--wow-edge);display:flex;align-items:center;justify-content:space-between;gap:30px;flex-wrap:wrap}
+.wow-footer nav{display:flex;gap:24px;flex-wrap:wrap}
+.wow-footer nav a{color:var(--ink);font-size:.73rem;text-underline-offset:4px;padding-block:12px}
+.wow-footer>span{font-size:.68rem;color:var(--ink-soft)}
+
+.wow-page:not(.js) .navtoggle{display:none}
+@media(min-width:1081px) and (max-height:800px){
+ .wow-hero h1{font-size:clamp(52px,4.6vw,72px)}.wow-world h2,.wow-meeting h2{font-size:clamp(46px,4.4vw,67px)}
+ .wow-page[data-wow-state="enhanced"] .wow-copy{padding:24px}.wow-intro{margin-top:18px!important}.wow-welcome{margin-top:12px!important}
+}
+@media(max-width:1080px){
+ .wow-stage{display:none}.wow-chapter{grid-template-columns:1fr 1fr;padding-block:55px;gap:25px}.wow-copy{padding:0;max-width:none}.wow-hero{padding-bottom:80px}
+ .wow-hero h1{font-size:clamp(47px,6.1vw,74px)}.wow-world h2,.wow-meeting h2{font-size:clamp(45px,6vw,68px)}
+ .wow-chapters{pointer-events:auto}.wow-world:not(:has(.wow-static)) .wow-copy{grid-column:1/-1;max-width:660px}
+ .wow-page:not(.js) .masthead{flex-wrap:wrap}.wow-page:not(.js) .masthead__end{display:contents}.wow-page:not(.js) .navpanel{order:3;width:100%;gap:5px 17px}.wow-page:not(.js) .navlink{min-height:36px;display:flex;align-items:center}
+ .wow-page .navpanel.is-open{max-height:calc(100svh - 80px);overflow-y:auto}
+ .wow-programme{grid-template-columns:40% 60%;gap:24px;padding-block:65px}.wow-recap{gap:30px;padding-block:70px}.wow-invitation{gap:28px}
+}
+@media(max-width:700px){
+ .wow-page{--wow-edge:24px}.wow-page .masthead{padding-inline:18px}
+ .wow-chapter{display:block;padding-top:48px;padding-bottom:48px}.wow-hero{padding-top:32px;padding-bottom:75px}
+ .wow-hero h1{font-size:clamp(37px,10.4vw,64px)}.wow-intro{font-size:18px}.wow-welcome{font-size:.82rem}
+ .wow-static{margin-top:32px}.wow-static img{aspect-ratio:3/4}
+ .wow-hero-bottom{bottom:20px;font-size:.65rem}.wow-hero-bottom>span:first-child{display:none}
+ .wow-world h2,.wow-meeting h2{font-size:clamp(45px,11.8vw,72px)}.wow-transition h2{font-size:clamp(38px,9.5vw,58px)}
+ .wow-world h3{margin-top:24px}.wow-world .wow-copy>p{max-width:40ch;font-size:.95rem}
+ .wow-main-cta{font-size:.72rem;padding:16px}.wow-facts{margin-top:28px}
+ .wow-programme{display:block;padding-block:52px}.wow-programme-head{margin-bottom:32px}.wow-programme-head h2{font-size:35px;max-width:15ch}.wow-programme-head>p{font-size:.85rem;margin-top:18px}.wow-programme-list article{gap:16px;padding:24px 0}.wow-programme-list h3{font-size:21px}.wow-programme-list p{font-size:.86rem}
+ .wow-recap{display:block;padding-block:55px}.wow-recap-title{display:block;margin-bottom:28px}.wow-recap-title h2{font-size:clamp(39px,10.4vw,65px)}.wow-recap-title>p{margin-top:22px}.wow-recap-photo{margin-bottom:26px}.wow-recap-text>p{font-size:18px}.wow-recap-links{margin-top:16px}
+ .wow-invitation{display:block;padding-block:55px 60px}.wow-invitation h2{font-size:clamp(66px,18vw,106px);margin-bottom:28px}.wow-invitation-copy>p{font-size:1rem}.wow-invitation .wow-orange-cta{font-size:.7rem;padding:16px;gap:12px}.wow-invitation-mark{top:40%;right:-8%}.wow-invitation-mark i{width:68px;height:68px}
+ .wow-footer{padding-block:30px;gap:22px}.wow-footer nav{gap:4px 20px}.wow-footer>span{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.wow-page *,.wow-page *::before,.wow-page *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.wow-stage{display:none}.wow-static{visibility:visible!important}}
+@media print{.wow-stage,.wow-page .masthead,.wow-hero-bottom{display:none}.wow-chapter{min-height:0;display:block;break-inside:avoid;padding:20px}.wow-programme,.wow-recap,.wow-invitation{padding:20px}.wow-page h1,.wow-page h2{font-size:32pt}}
