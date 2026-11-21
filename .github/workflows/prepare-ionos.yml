@@ -1,0 +1,26 @@
+name: KIWERK Sicherung und Testordner
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ionos-sftp
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y python3-paramiko
+      - name: Live-Daten sichern und Testordner erstellen
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_USER: ${{ secrets.SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_KNOWN_HOSTS: ${{ secrets.SFTP_KNOWN_HOSTS }}
+          SFTP_WEBROOT: ${{ secrets.SFTP_WEBROOT }}
+        run: /usr/bin/python3 .github/scripts/prepare_ionos.py
