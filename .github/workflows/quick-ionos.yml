@@ -1,0 +1,26 @@
+name: KIWERK gezielte Veröffentlichung
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ionos-sftp
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y python3-paramiko
+      - name: Geprüfte Änderungen sichern und veröffentlichen
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_USER: ${{ secrets.SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_KNOWN_HOSTS: ${{ secrets.SFTP_KNOWN_HOSTS }}
+          SFTP_WEBROOT: ${{ secrets.SFTP_WEBROOT }}
+        run: /usr/bin/python3 .github/scripts/quick_ionos.py
