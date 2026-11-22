@@ -4,6 +4,7 @@ This module deliberately does not publish or infer event details.
 """
 from dataclasses import dataclass
 from datetime import date, timedelta
+from collections.abc import Iterable
 
 
 @dataclass(frozen=True)
@@ -11,6 +12,15 @@ class RuleEvent:
     day: date
     format: str
     holiday: str | None = None
+
+
+@dataclass(frozen=True)
+class ConfirmedException:
+    """A decision tied to its original rule slot, not inferred from a new date."""
+    original_day: date
+    format: str
+    new_day: date | None = None
+    cancelled: bool = False
 
 
 def easter_sunday(year: int) -> date:
@@ -61,3 +71,33 @@ def rule_events(today: date, months_ahead: int = 6) -> list[RuleEvent]:
             if day >= today:
                 result.append(RuleEvent(day, kind, holidays(day.year).get(day)))
     return result
+
+
+def apply_exceptions(events: Iterable[RuleEvent], exceptions: Iterable[ConfirmedException],
+                     today: date) -> list[RuleEvent]:
+    """Apply explicit decisions, rejecting ambiguous slots and collisions.
+
+    Callers must supply all relevant rule slots, including past original dates
+    for events moved into the future. Cancellations are omitted from this list.
+    """
+    events = list(events)
+    by_key = {(event.day, event.format): event for event in events}
+    if len(by_key) != len(events):
+        raise ValueError("Duplicate rule slots")
+    used = set()
+    for decision in exceptions:
+        key = (decision.original_day, decision.format)
+        if key in used or key not in by_key:
+            raise ValueError("Duplicate or unknown exception slot")
+        if decision.cancelled and decision.new_day is not None:
+            raise ValueError("Cancellation cannot specify a new date")
+        used.add(key)
+        old = by_key.pop(key)
+        if not decision.cancelled:
+            day = decision.new_day or old.day
+            new_key = (day, old.format)
+            if new_key in by_key:
+                raise ValueError("Exception collides with another event")
+            by_key[new_key] = RuleEvent(day, old.format, holidays(day.year).get(day))
+    return sorted((event for event in by_key.values() if event.day >= today),
+                  key=lambda event: (event.day, event.format))
