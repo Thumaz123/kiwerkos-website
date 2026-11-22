@@ -1,6 +1,11 @@
 name: KIWERK daily event rollforward
 
 on:
+  push:
+    branches: [main]
+    # One initial deployment when the event workflow is enabled or repaired.
+    paths:
+      - '.github/workflows/kiwerk-daily-events.yml'
   pull_request:
     paths:
       - 'scripts/**'
