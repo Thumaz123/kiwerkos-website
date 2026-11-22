@@ -62,7 +62,7 @@
    renderHero(view,events,Math.max(0,events.findIndex(ev=>ev.date===selections.get(view))),today);
    // Terminliste: Präsenz- und Online-Treffen gemeinsam, neu aufgebaut statt Zeile für Zeile überschrieben.
    const rows=[...view.querySelectorAll('.event-row')];
-   if(rows.length){rows[0].before(...schedule(global.KIWERK_EVENTS,today,6).map(ev=>row(ev,today)));rows.forEach(r=>r.remove())}
+   if(rows.length){rows[0].before(...schedule(global.KIWERK_EVENTS,today,12).map(ev=>row(ev,today)));rows.forEach(r=>r.remove())}
   });
   document.querySelectorAll('[data-next-date]').forEach(node=>node.textContent=short(e.date)+e.date.slice(0,4));
   document.dispatchEvent(new Event('kiwerk:events'));
