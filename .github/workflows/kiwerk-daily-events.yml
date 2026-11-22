@@ -1,0 +1,71 @@
+name: KIWERK daily event rollforward
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/kiwerk-daily-events.yml'
+      - '.github/scripts/publish_schedule.py'
+      - 'landingpage/index.html'
+      - 'landingpage/treffen/index.html'
+  schedule:
+    # 02:15 UTC = 03:15 CET / 04:15 CEST; always before Friday morning.
+    - cron: '15 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ionos-sftp
+  cancel-in-progress: false
+
+jobs:
+  rollforward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out published version
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Generate event HTML for current date in Europe/Berlin
+        run: python3 scripts/rollforward_website.py
+      - name: Validate calendar rules
+        run: python3 -m unittest discover -s scripts -p 'test_*.py'
+      - name: Validate website package
+        run: python3 build_deploy.py --check
+      - name: Prepare SFTP client
+        if: github.event_name != 'pull_request'
+        run: sudo apt-get update && sudo apt-get install -y python3-paramiko
+      - name: Publish only event HTML pages to IONOS
+        if: github.event_name != 'pull_request'
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_USER: ${{ secrets.SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_KNOWN_HOSTS: ${{ secrets.SFTP_KNOWN_HOSTS }}
+          SFTP_WEBROOT: ${{ secrets.SFTP_WEBROOT }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: /usr/bin/python3 .github/scripts/publish_schedule.py
+      - name: Verify public event pages can be reached
+        if: github.event_name != 'pull_request'
+        run: |
+          python3 - <<'PY'
+          import urllib.request
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          today = datetime.now(ZoneInfo("Europe/Berlin")).date().isoformat()
+          for url in ("https://www.kiwerk-os.de/", "https://www.kiwerk-os.de/treffen/"):
+              req = urllib.request.Request(url, headers={"User-Agent": "KIWERK-website-schedule-verifier/1.0", "Cache-Control": "no-cache"})
+              with urllib.request.urlopen(req, timeout=25) as resp:
+                  html = resp.read().decode("utf-8")
+                  if resp.status != 200 or "<html" not in html:
+                      raise ValueError("Public page unavailable or invalid HTML")
+                  if url.endswith("/treffen/") and "Nächstes Treffen vor Ort am " not in html:
+                      raise ValueError("Missing scheduled meeting metadata")
+                  if url.endswith(".de/") and 'class="event-list" id="termine"' not in html:
+                      raise ValueError("Missing public event listing")
+          print("Both public event pages responded with expected markup after deployment.")
+          PY
