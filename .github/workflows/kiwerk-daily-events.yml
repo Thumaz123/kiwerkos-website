@@ -49,23 +49,29 @@ jobs:
           SFTP_WEBROOT: ${{ secrets.SFTP_WEBROOT }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: /usr/bin/python3 .github/scripts/publish_schedule.py
-      - name: Verify public event pages can be reached
+      - name: Verify public event pages match generated files
         if: github.event_name != 'pull_request'
         run: |
           python3 - <<'PY'
+          import time
           import urllib.request
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
-          today = datetime.now(ZoneInfo("Europe/Berlin")).date().isoformat()
-          for url in ("https://www.kiwerk-os.de/", "https://www.kiwerk-os.de/treffen/"):
-              req = urllib.request.Request(url, headers={"User-Agent": "KIWERK-website-schedule-verifier/1.0", "Cache-Control": "no-cache"})
-              with urllib.request.urlopen(req, timeout=25) as resp:
-                  html = resp.read().decode("utf-8")
-                  if resp.status != 200 or "<html" not in html:
-                      raise ValueError("Public page unavailable or invalid HTML")
-                  if url.endswith("/treffen/") and "Nächstes Treffen vor Ort am " not in html:
-                      raise ValueError("Missing scheduled meeting metadata")
-                  if url.endswith(".de/") and 'class="event-list" id="termine"' not in html:
-                      raise ValueError("Missing public event listing")
-          print("Both public event pages responded with expected markup after deployment.")
+          from pathlib import Path
+          files = (
+              ("https://www.kiwerk-os.de/", Path("landingpage/index.html")),
+              ("https://www.kiwerk-os.de/treffen/", Path("landingpage/treffen/index.html")),
+          )
+          for url, local in files:
+              expected = local.read_bytes()
+              for attempt in range(4):
+                  req = urllib.request.Request(
+                      url + "?kiwerk_check=" + str(int(time.time())),
+                      headers={"User-Agent": "KIWERK-website-schedule-verifier/1.0", "Cache-Control": "no-cache"})
+                  with urllib.request.urlopen(req, timeout=25) as resp:
+                      live = resp.read()
+                      if resp.status == 200 and live == expected:
+                          print("Public page matches generated HTML:", url)
+                          break
+                  if attempt == 3:
+                      raise ValueError("Live page differs from generated version: " + url)
+                  time.sleep(10)
           PY
