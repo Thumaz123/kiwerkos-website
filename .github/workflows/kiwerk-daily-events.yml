@@ -13,6 +13,7 @@ on:
       - '.github/scripts/publish_schedule.py'
       - 'landingpage/index.html'
       - 'landingpage/treffen/index.html'
+      - 'landingpage/assets/js/events.js'
   schedule:
     # 02:15 UTC = 03:15 CET / 04:15 CEST; always before Friday morning.
     - cron: '15 2 * * *'
