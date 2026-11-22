@@ -59,14 +59,9 @@ def main():
                 sftp.mkdir(backup)
                 for remote, data, original in updates:
                     name = posixpath.relpath(remote, webroot)
-                    dest = posixpath.join(backup, name)
-                    folder = posixpath.dirname(dest)
-                    if folder != backup:
-                        try:
-                            sftp.mkdir(folder)
-                        except OSError:
-                            if not stat.S_ISDIR(sftp.lstat(folder).st_mode):
-                                raise
+                    # Flatten private backup filenames: nested asset directories
+                    # need no additional SFTP mkdir permissions.
+                    dest = posixpath.join(backup, name.replace("/", "__"))
                     with sftp.open(dest, "wb") as f:
                         f.write(original)
                     with sftp.open(dest, "rb") as f:
@@ -91,7 +86,7 @@ def main():
                                 raise ValueError("Live verification failed")
                 except Exception:
                     for remote, name in changed:
-                        back = posixpath.join(backup, name)
+                        back = posixpath.join(backup, name.replace("/", "__"))
                         with sftp.open(back, "rb") as f:
                             original = f.read()
                         with sftp.open(remote, "wb") as f:
