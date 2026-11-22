@@ -38,6 +38,8 @@ jobs:
           persist-credentials: false
       - name: SFTP-Bibliothek installieren
         run: sudo apt-get update && sudo apt-get install -y python3-paramiko
+      - name: Aktuelle KIWERK-Termine vor dem Upload generieren
+        run: python3 site/scripts/rollforward_website.py
       - name: Website mit KIWERK-Build prüfen
         run: /usr/bin/python3 site/build_deploy.py --check
       - name: Verbindung prüfen oder Dateien übertragen
