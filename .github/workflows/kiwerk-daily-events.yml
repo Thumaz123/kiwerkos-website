@@ -64,6 +64,7 @@ jobs:
           files = (
               ("https://www.kiwerk-os.de/", Path("landingpage/index.html")),
               ("https://www.kiwerk-os.de/treffen/", Path("landingpage/treffen/index.html")),
+              ("https://www.kiwerk-os.de/assets/js/events.js", Path("landingpage/assets/js/events.js")),
           )
           for url, local in files:
               expected = local.read_bytes()
