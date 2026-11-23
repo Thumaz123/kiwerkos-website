@@ -6,6 +6,8 @@ on:
     # One initial deployment when the event workflow is enabled or repaired.
     paths:
       - '.github/workflows/kiwerk-daily-events.yml'
+      - 'landingpage/assets/js/events.js'
+      - 'scripts/rollforward_website.py'
   pull_request:
     paths:
       - 'scripts/**'
