@@ -1,7 +1,7 @@
 """Regression tests for the website rollforward and publication markup."""
 import unittest
 from datetime import date
-from rollforward_website import events, row, thursday, german
+from rollforward_website import events, row, thursday, german, event_list_markup
 
 CONFIG = {
     "start": "2026-11-05", "city": "Osnabrück", "price": None,
@@ -38,6 +38,22 @@ class WebsiteRollforwardTests(unittest.TestCase):
         online = next(e for e in upcoming if e["format"] == "Online")
         self.assertNotIn("teams.microsoft.com", row(online))
         self.assertIn("E-Mail", row(online))
+
+    def test_compact_upcoming_list_preserves_future_dates(self):
+        future = events(date(2026, 11, 23), CONFIG)
+        markup = event_list_markup(future, date(2026, 11, 23))
+        visible, hidden = markup.split('<details class="event-list__more">', 1)
+        self.assertEqual(visible.count('<article class="event-row'), 3)
+        self.assertEqual(hidden.count('<article class="event-row'), len(future) - 3)
+        self.assertIn('Weitere Termine anzeigen', hidden)
+        self.assertIn('2026-12-03', visible)
+        self.assertNotIn('2027-02-04', visible)
+
+    def test_short_list_has_no_empty_expander(self):
+        future = events(date(2026, 11, 23), CONFIG)[:2]
+        markup = event_list_markup(future, date(2026, 11, 23))
+        self.assertEqual(markup.count('<article class="event-row'), 2)
+        self.assertNotIn('event-list__more', markup)
 
     def test_html_escaping(self):
         e = {"date": "2027-01-07", "format": "Präsenz", "venue": '<script>alert("x")</script>',
