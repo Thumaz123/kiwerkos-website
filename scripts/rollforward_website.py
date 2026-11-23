@@ -90,6 +90,22 @@ def row(e: dict) -> str:
             f'"><div><time datetime="{iso}">{german(iso)}</time><p>{esc(meta)}</p></div>'
             f'<div><p class="event-details">{detail}</p>{holiday}{button}</div></article>')
 
+def event_list_markup(future: list[dict], today: date) -> str:
+    """Show three soonest dates on the landing page, with the rest in a disclosure."""
+    immediate = "".join(map(row, future[:3]))
+    remaining = "".join(map(row, future[3:]))
+    more = (
+        '<details class="event-list__more"><summary>Weitere Termine anzeigen</summary>'
+        '<div class="event-list__additional">' + remaining + '</div></details>'
+    ) if remaining else ""
+    return ('<section class="event-list" id="termine"><h2>Termine &amp; Tickets</h2>'
+            '<p>Jeden ersten Donnerstag im Monat vor Ort in Osnabrück, zwei Wochen später online. '
+            'Beim jeweiligen Termin steht, wie die Teilnahme funktioniert.</p>'
+            '<div class="event-list__upcoming">' + immediate + '</div>'
+            + more +
+            f'<noscript><p>Terminstand: {today.isoformat()}. Termine werden täglich aktualisiert.</p></noscript></section>')
+
+
 def rewrite(today: date) -> bool:
     match = re.match(r"\s*window\.KIWERK_EVENTS\s*=\s*(\{.*\})\s*;\s*$", DATA.read_text(encoding="utf-8"), re.S)
     if not match:
@@ -101,11 +117,7 @@ def rewrite(today: date) -> bool:
         raise ValueError("No eligible future meetings")
     next_p = physical[0]
     home = HOME.read_text(encoding="utf-8")
-    termin_list = ('<section class="event-list" id="termine"><h2>Termine &amp; Tickets</h2>'
-                   '<p>Jeden ersten Donnerstag im Monat vor Ort in Osnabrück, zwei Wochen später online. '
-                   'Beim jeweiligen Termin steht, wie die Teilnahme funktioniert.</p>'
-                   + "".join(map(row, future)) +
-                   f'<noscript><p>Terminstand: {today.isoformat()}. Termine werden täglich aktualisiert.</p></noscript></section>')
+    termin_list = event_list_markup(future, today)
     home, c1 = re.subn(r'<section class="event-list" id="termine">.*?</section>', lambda _: termin_list, home, count=1, flags=re.S)
     if c1 != 1:
         raise ValueError("Event list marker not found exactly once")
