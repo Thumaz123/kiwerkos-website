@@ -37,7 +37,25 @@ class WebsiteRollforwardTests(unittest.TestCase):
         upcoming = events(date(2026, 12, 1), cfg)
         online = next(e for e in upcoming if e["format"] == "Online")
         self.assertNotIn("teams.microsoft.com", row(online))
-        self.assertIn("E-Mail", row(online))
+        self.assertIn("Teams-Link", row(online))
+
+    def test_online_signup_requires_unique_checked_form_url(self):
+        upcoming = events(date(2026, 11, 23), CONFIG)
+        online = next(e for e in upcoming if e["format"] == "Online")
+        content = row(online)
+        self.assertIn("Online-Anmeldung folgt", content)
+        self.assertIn('type="button" disabled', content)
+        self.assertNotIn('href="#termin-erinnerung"', content)
+        cfg = dict(CONFIG)
+        cfg["online"] = dict(CONFIG["online"], registration_urls={
+            "2026-12-17": "https://78be9161.sibforms.com/serve/example"
+        })
+        online = next(e for e in events(date(2026, 11, 23), cfg) if e["format"] == "Online")
+        self.assertIn("Für Online-Treffen anmelden", row(online))
+        self.assertIn("https://78be9161.sibforms.com/serve/example", row(online))
+        self.assertIn('rel="noopener noreferrer"', row(online))
+        cfg["online"]["registration_urls"]["2026-12-17"] = "https://example.com/teams-secret"
+        self.assertNotIn("teams-secret", row(next(e for e in events(date(2026, 11, 23), cfg) if e["format"] == "Online")))
 
     def test_compact_upcoming_list_preserves_future_dates(self):
         future = events(date(2026, 11, 23), CONFIG)
