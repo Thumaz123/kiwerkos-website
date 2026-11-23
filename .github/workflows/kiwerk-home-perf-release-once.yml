@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Confirm the approved homepage fix is present
         run: git merge-base --is-ancestor 1f06c12bca1c38256e1ced3dd293a60329226168 HEAD
       - name: Refresh dates without changing reviewed homepage code
