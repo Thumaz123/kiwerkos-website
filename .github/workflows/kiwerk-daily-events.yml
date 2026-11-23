@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/kiwerk-daily-events.yml'
       - 'landingpage/assets/js/events.js'
+      - 'landingpage/assets/js/events-data.js'
       - 'scripts/rollforward_website.py'
   pull_request:
     paths:
@@ -68,6 +69,7 @@ jobs:
               ("https://www.kiwerk-os.de/", Path("landingpage/index.html")),
               ("https://www.kiwerk-os.de/treffen/", Path("landingpage/treffen/index.html")),
               ("https://www.kiwerk-os.de/assets/js/events.js", Path("landingpage/assets/js/events.js")),
+              ("https://www.kiwerk-os.de/assets/js/events-data.js", Path("landingpage/assets/js/events-data.js")),
           )
           for url, local in files:
               expected = local.read_bytes()
