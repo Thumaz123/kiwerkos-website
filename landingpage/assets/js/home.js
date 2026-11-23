@@ -230,9 +230,14 @@
   const exact=readyImages.get(frame);
   if(exact)paintFrame(frame,exact);
   else{
-   getFrame(frame).then(img=>{
-    if(active&&generation===token&&desired===frame)paintFrame(frame,img);
-   }).catch(()=>{if(active&&generation===token)fallback()});
+   // During a flight, the four background workers own all image requests.
+   // A new request for every animation tick would undo that concurrency limit.
+   const pending=images.get(frame);
+   if(pending||!moving){
+    (pending||getFrame(frame)).then(img=>{
+     if(active&&generation===token&&desired===frame)paintFrame(frame,img);
+    }).catch(()=>{if(active&&generation===token)fallback()});
+   }
    // Keep the camera moving with a nearby ready frame on slow connections.
    let nearest=-1,distance=6;
    for(const n of readyImages.keys()){
