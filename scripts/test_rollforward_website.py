@@ -37,7 +37,34 @@ class WebsiteRollforwardTests(unittest.TestCase):
         upcoming = events(date(2026, 12, 1), cfg)
         online = next(e for e in upcoming if e["format"] == "Online")
         self.assertNotIn("teams.microsoft.com", row(online))
-        self.assertIn("E-Mail", row(online))
+        self.assertIn("Teams-Link", row(online))
+
+    def test_online_signup_requires_unique_checked_form_url(self):
+        upcoming = events(date(2026, 11, 23), CONFIG)
+        online = next(e for e in upcoming if e["format"] == "Online")
+        content = row(online)
+        self.assertIn("Online-Anmeldung folgt", content)
+        self.assertIn('type="button" disabled', content)
+        self.assertNotIn('href="#termin-erinnerung"', content)
+        cfg = dict(CONFIG)
+        cfg["online"] = dict(CONFIG["online"], registration_urls={
+            "2026-12-17": "https://78be9161.sibforms.com/serve/example"
+        })
+        online = next(e for e in events(date(2026, 11, 23), cfg) if e["format"] == "Online")
+        self.assertIn("Link per E-Mail erhalten", row(online))
+        self.assertIn("https://78be9161.sibforms.com/serve/example", row(online))
+        self.assertIn('rel="noopener noreferrer"', row(online))
+        cfg["online"]["registration_urls"]["2026-12-17"] = "https://example.com/teams-secret"
+        self.assertNotIn("teams-secret", row(next(e for e in events(date(2026, 11, 23), cfg) if e["format"] == "Online")))
+
+    def test_shared_online_signup_works_for_each_month(self):
+        cfg = dict(CONFIG, online=dict(CONFIG["online"], time="18:30 Uhr",
+                   registration_url="https://78be9161.sibforms.com/serve/example"))
+        online = [e for e in events(date(2026, 11, 23), cfg) if e["format"] == "Online"]
+        self.assertGreaterEqual(len(online), 2)
+        for event in online:
+            self.assertIn("Link per E-Mail erhalten", row(event))
+            self.assertIn("18:30 Uhr", row(event))
 
     def test_compact_upcoming_list_preserves_future_dates(self):
         future = events(date(2026, 11, 23), CONFIG)

@@ -3,14 +3,15 @@
  function todayISO(now=new Date()){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);return ['year','month','day'].map(k=>p.find(x=>x.type===k).value).join('-')}
  function upcoming(config,today,count=3){let [y,m]=today.split('-').map(Number);const events=[];for(let i=0;i<count+240;i++){const first=new Date(Date.UTC(y,m-1,1)),day=1+(4-first.getUTCDay()+7)%7,date=`${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;if(date>=today&&date>=config.start){const override=config.overrides?.[date]||{};if((override.visibility||'public')==='public')events.push(Object.assign({date,city:config.city,price:config.price,status:'planned',venue:null,address:null,time:null,capacity:null,ticket_url:null,ticket_verified:false,booking_opens:null},override));if(events.length===count)return events}if(++m===13){m=1;y++}}return events}
  // Online-Treffen: dritter Donnerstag im Monat, also zwei Wochen nach dem Präsenztreffen.
- function online(config,today,count=3){const o=config.online;if(!o||!o.start)return [];let [y,m]=today.split('-').map(Number);const events=[];for(let i=0;i<count+240&&events.length<count;i++){const first=new Date(Date.UTC(y,m-1,1)),day=15+(4-first.getUTCDay()+7)%7,date=`${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;if(date>=today&&date>=o.start&&!(o.excluded||[]).includes(date))events.push({date,online:true,city:o.label||'Online',price:o.price,status:'planned',time:o.time||null,access:o.access||''});if(++m===13){m=1;y++}}return events}
+ function online(config,today,count=3){const o=config.online;if(!o||!o.start)return [];let [y,m]=today.split('-').map(Number);const events=[];for(let i=0;i<count+240&&events.length<count;i++){const first=new Date(Date.UTC(y,m-1,1)),day=15+(4-first.getUTCDay()+7)%7,date=`${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;if(date>=today&&date>=o.start&&!(o.excluded||[]).includes(date))events.push({date,online:true,city:o.label||'Online',price:o.price,status:'planned',time:o.time||null,registration_url:(o.registration_urls||{})[date]||o.registration_url||null});if(++m===13){m=1;y++}}return events}
  function schedule(config,today,count=6){return upcoming(config,today,count).concat(online(config,today,count)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0).slice(0,count)}
  function booking(e,today){if(e.status==='cancelled')return ['Abgesagt',null];let safe=false;try{const u=new URL(e.ticket_url);safe=u.protocol==='https:'&&['eventfrog.de','www.eventfrog.de','eventfrog.ch','www.eventfrog.ch'].includes(u.hostname)&&!u.username&&!u.password}catch{}return e.status==='confirmed'&&e.ticket_verified===true&&safe&&['venue','time'].every(k=>typeof e[k]==='string'&&e[k].trim())&&(!e.booking_opens||today>=e.booking_opens)?['Tickets buchen',e.ticket_url]:[e.status==='planned'&&!(e.price>0)?'Details folgen':'Tickets folgen',null]}
+ function onlineRegistration(url){try{const u=new URL(url);return u.protocol==='https:'&&u.hostname.endsWith('.sibforms.com')&&u.pathname.startsWith('/serve/')&&!u.username&&!u.password?u.href:null}catch{return null}}
  const short=iso=>iso.slice(8,10)+'.'+iso.slice(5,7)+'.';
  function updateButton(old,e,today){const [label,url]=booking(e,today),el=document.createElement(url?'a':'button');el.className='ticket-button';el.textContent=url?label+' · Eventfrog':label;if(url){el.href=url;el.target='_blank';el.rel='noopener noreferrer'}else{el.type='button';el.disabled=true}old.replaceWith(el)}
  function updateDetails(el,e,today,compact=false){
   let lines;
-  if(e.online)lines=['Online über Microsoft Teams',e.time||'Uhrzeit folgt',e.access||'Details folgen.'];
+  if(e.online)lines=['Online über Microsoft Teams',e.time||'Uhrzeit folgt',onlineRegistration(e.registration_url)?'Einmal anmelden, Teams-Link monatlich per E-Mail erhalten.':'Online-Anmeldung und Teams-Link folgen.'];
   else if(e.status==='planned'&&!e.venue)lines=['Ort und Uhrzeit noch offen.',e.price>0?'Der Ticketlink folgt.':'Details und Teilnahme folgen.'];
   else{
    lines=[e.venue||'Ort folgt',e.time||'Uhrzeit folgt'];
@@ -32,7 +33,7 @@
   meta.textContent=[ev.city,priceLabel(ev),state(ev)].filter(Boolean).join(' · ');
   head.append(t,meta);body.append(details,button);article.append(head,body);
   updateDetails(details,ev,today);
-  if(ev.online){const link=document.createElement('a');link.className='ticket-button';link.href='#termin-erinnerung';link.textContent='Link per E-Mail erhalten';button.replaceWith(link)}
+  if(ev.online){const url=onlineRegistration(ev.registration_url),control=document.createElement(url?'a':'button');control.className='ticket-button';control.textContent=url?'Link per E-Mail erhalten':'Online-Anmeldung folgt';if(url){control.href=url;control.target='_blank';control.rel='noopener noreferrer'}else{control.disabled=true;control.type='button'}button.replaceWith(control)}
   else updateButton(button,ev,today);
   return article;
  }

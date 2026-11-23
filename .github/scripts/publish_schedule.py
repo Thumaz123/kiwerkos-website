@@ -9,7 +9,7 @@ from pathlib import Path
 
 import paramiko
 
-FILES = ("index.html", "treffen/index.html", "assets/js/events.js")
+FILES = ("index.html", "treffen/index.html", "assets/js/events.js", "assets/js/events-data.js")
 EXPECTED_WEBROOT = "/kiwerk-os/deploy"
 
 def required(name):

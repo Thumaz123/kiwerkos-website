@@ -13,6 +13,7 @@ import json
 import re
 from datetime import date, timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 import sys
 
@@ -46,7 +47,7 @@ def events(today: date, config: dict) -> list[dict]:
                 if iso < online.get("start", "9999-12-31") or iso in online.get("excluded", []):
                     continue
                 info = {"date": iso, "format": kind, "price": online.get("price"), "time": online.get("time"),
-                        "status": "planned", "access": online.get("access", "Teilnahmelink per E-Mail erhalten")}
+                        "status": "planned", "registration_url": (online.get("registration_urls") or {}).get(iso) or online.get("registration_url")}
             else:
                 if iso < config.get("start", "0001-01-01"):
                     continue
@@ -65,6 +66,20 @@ def esc(s) -> str:
 def german(iso: str) -> str:
     return iso[8:10] + "." + iso[5:7] + "." + iso[:4]
 
+def online_registration_url(raw) -> str | None:
+    if not isinstance(raw, str):
+        return None
+    try:
+        parsed = urlparse(raw)
+        if (parsed.scheme == "https" and parsed.hostname
+                and parsed.hostname.endswith(".sibforms.com")
+                and parsed.path.startswith("/serve/")
+                and not parsed.username and not parsed.password):
+            return raw
+    except ValueError:
+        pass
+    return None
+
 def row(e: dict) -> str:
     iso = e["date"]
     online = e["format"] == "Online"
@@ -73,8 +88,13 @@ def row(e: dict) -> str:
     meta = ("Online" if online else "Osnabrück") + (" · " + price_text if price_text else "") + " · geplant"
     holiday = f"<p class=\"event-details\">Feiertagskonflikt: {esc(e['holiday'])}. Termin noch zu bestätigen.</p>" if e["holiday"] else ""
     if online:
-        details = ["Online über Microsoft Teams", e.get("time") or "Uhrzeit folgt", "Teilnahmelink wird per E-Mail verschickt."]
-        button = '<a class="ticket-button" href="#termin-erinnerung">Link per E-Mail erhalten</a>'
+        signup = online_registration_url(e.get("registration_url"))
+        details = ["Online über Microsoft Teams", e.get("time") or "Uhrzeit folgt",
+                   "Einmal anmelden, Teams-Link monatlich per E-Mail erhalten." if signup else
+                   "Online-Anmeldung und Teams-Link folgen."]
+        button = (f'<a class="ticket-button" href="{esc(signup)}" rel="noopener noreferrer" '
+                  'target="_blank">Link per E-Mail erhalten</a>') if signup else (
+                  '<button class="ticket-button" type="button" disabled>Online-Anmeldung folgt</button>')
     else:
         details = [e.get("venue") or "Ort folgt", e.get("time") or "Uhrzeit folgt", "Details und Tickets folgen."]
         button = '<button class="ticket-button" type="button" disabled>Details folgen</button>'
