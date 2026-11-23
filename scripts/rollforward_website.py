@@ -47,7 +47,7 @@ def events(today: date, config: dict) -> list[dict]:
                 if iso < online.get("start", "9999-12-31") or iso in online.get("excluded", []):
                     continue
                 info = {"date": iso, "format": kind, "price": online.get("price"), "time": online.get("time"),
-                        "status": "planned", "registration_url": (online.get("registration_urls") or {}).get(iso)}
+                        "status": "planned", "registration_url": (online.get("registration_urls") or {}).get(iso) or online.get("registration_url")}
             else:
                 if iso < config.get("start", "0001-01-01"):
                     continue
@@ -90,10 +90,10 @@ def row(e: dict) -> str:
     if online:
         signup = online_registration_url(e.get("registration_url"))
         details = ["Online über Microsoft Teams", e.get("time") or "Uhrzeit folgt",
-                   "Teams-Link folgt für angemeldete Teilnehmer per E-Mail." if signup else
+                   "Einmal anmelden, Teams-Link monatlich per E-Mail erhalten." if signup else
                    "Online-Anmeldung und Teams-Link folgen."]
         button = (f'<a class="ticket-button" href="{esc(signup)}" rel="noopener noreferrer" '
-                  'target="_blank">Für Online-Treffen anmelden</a>') if signup else (
+                  'target="_blank">Link per E-Mail erhalten</a>') if signup else (
                   '<button class="ticket-button" type="button" disabled>Online-Anmeldung folgt</button>')
     else:
         details = [e.get("venue") or "Ort folgt", e.get("time") or "Uhrzeit folgt", "Details und Tickets folgen."]
