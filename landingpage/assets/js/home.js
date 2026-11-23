@@ -11,7 +11,8 @@
  const back=document.querySelector('#station-back'), next=document.querySelector('#station-next');
  const count=document.querySelector('#station-count'), status=document.querySelector('#film-status');
  const media=matchMedia('(prefers-reduced-motion:no-preference)');
- const images=new Map();
+ const images=new Map(), readyImages=new Map();
+ let warmToken=0, warmedRange='', lastUiState='';
  const frameRevision='20261102-landscape';
  const glassRevision='20261102-tv-material';
  const frameDirectory=()=>matchMedia('(max-width:900px)').matches?(matchMedia('(orientation:portrait)').matches?'board/':'mobile/') : '';
@@ -77,16 +78,51 @@
    if(prefix==='glass')url.searchParams.set('v',glassRevision);
    image.src=url.href;
   });
-  const promise=Promise.all([load('frame'),load('mask'),load('glass'),loadBoardData(),meetingMedia?load('laptops'):Promise.resolve(null),loadLaptopData()]).then(([image,mask,glass,_,laptops])=>{image.boardMask=mask;image.screenGlass=glass;image.laptopMask=laptops;return image});
+  const promise=Promise.all([load('frame'),load('mask'),load('glass'),loadBoardData(),meetingMedia?load('laptops'):Promise.resolve(null),loadLaptopData()]).then(([image,mask,glass,_,laptops])=>{
+   image.boardMask=mask;image.screenGlass=glass;image.laptopMask=laptops;
+   if(images.get(n)===promise)readyImages.set(n,image);
+   return image;
+  }).catch(error=>{
+   if(images.get(n)===promise){images.delete(n);readyImages.delete(n)}
+   throw error;
+  });
   images.set(n,promise);
   if(images.size>64){
-   [...images.keys()].sort((a,b)=>Math.abs(b-desired)-Math.abs(a-desired)).slice(0,images.size-64).forEach(k=>images.delete(k));
+   [...images.keys()].sort((a,b)=>Math.abs(b-desired)-Math.abs(a-desired)).slice(0,images.size-64).forEach(k=>{images.delete(k);readyImages.delete(k)});
   }
   return promise;
  }
+ // Preload the upcoming journey while visitors read, at a bounded concurrency.
+ function warmFrames(first,last){
+  if(!active)return;
+  const key=frameVariant+':'+first+'-'+last;
+  if(warmedRange===key)return;
+  warmedRange=key;
+  const token=++warmToken,variant=frameVariant;
+  for(const n of images.keys())if(n<first||n>last){images.delete(n);readyImages.delete(n)}
+  const order=[],seen=new Set();
+  function add(n){if(n>=first&&n<=last&&!seen.has(n)){seen.add(n);order.push(n)}}
+  add(first);add(last);
+  // Evenly spaced keyframes first, then the missing intermediate frames.
+  for(let offset=0;offset<4;offset++)for(let n=first+offset;n<=last;n+=4)add(n);
+  let cursor=0;
+  for(let i=0;i<4;i++){
+   (async()=>{
+    while(token===warmToken&&variant===frameVariant&&cursor<order.length){
+     const n=order[cursor++];
+     try{await getFrame(n)}catch{ /* The visible frame still handles errors. */ }
+    }
+   })();
+  }
+ }
+ function warmNextSegment(){
+  if(!active||index>=contentIndex)return;
+  const cap=frameVariant==='board/'?157:totalFrames;
+  warmFrames(Math.min(cap,stopFrames[index]),Math.min(cap,stopFrames[index+1]));
+ }
  function fallback(){
   const hadFocus=chapters.some(e=>e.contains(document.activeElement));
-  active=false;moving=false;loading=false;generation++;cancelAnimationFrame(raf);
+  active=false;moving=false;loading=false;generation++;warmToken++;warmedRange='';lastUiState='';images.clear();readyImages.clear();cancelAnimationFrame(raf);
   root.classList.remove('film-active','content-ready','is-travelling','is-mobile-portal','is-event-opening');portal.hidden=occluder.hidden=surface.hidden=reflection.hidden=true;updateMeetingPlayback();returnHero();
   canvas.style.removeProperty('transform');
   readHint.hidden=true;
@@ -175,6 +211,11 @@
   // translucent overlay would turn every dark pixel into a uniform grey veil.
   reflection.style.opacity=String(.72*Math.pow(1-t,2));reflection.dataset.frame=String(frame);
  }
+ function paintFrame(frame,img){
+  if(canvas.width!==img.naturalWidth||canvas.height!==img.naturalHeight){canvas.width=img.naturalWidth;canvas.height=img.naturalHeight}
+  ctx.drawImage(img,0,0);canvas.dataset.frame=String(frame);
+  drawBoard(frame,img);
+ }
  function draw(){
   const portalProgress=clamp((progress-stops[4])/(1-stops[4]),0,1);
   // A short landscape screen retains the complete display above the controls.
@@ -186,32 +227,41 @@
   }else for(const layer of [canvas,occluder,surface,reflection]){layer.style.removeProperty('width');layer.style.removeProperty('left')}
 
   const token=generation, frame=desired=frameVariant==='board/'&&progress>=stops[4]?157:1+Math.round(progress*(totalFrames-1));
-  getFrame(frame).then(img=>{
-   if(!active||generation!==token||desired!==frame)return;
-   if(canvas.width!==img.naturalWidth||canvas.height!==img.naturalHeight){canvas.width=img.naturalWidth;canvas.height=img.naturalHeight}
-   ctx.drawImage(img,0,0);canvas.dataset.frame=String(frame);
-   drawBoard(frame,img);
-
-  }).catch(()=>{if(active&&generation===token)fallback()});
-  root.dataset.station=String(index);root.dataset.travelling=String(moving);
+  const exact=readyImages.get(frame);
+  if(exact)paintFrame(frame,exact);
+  else{
+   getFrame(frame).then(img=>{
+    if(active&&generation===token&&desired===frame)paintFrame(frame,img);
+   }).catch(()=>{if(active&&generation===token)fallback()});
+   // Keep the camera moving with a nearby ready frame on slow connections.
+   let nearest=-1,distance=6;
+   for(const n of readyImages.keys()){
+    const delta=Math.abs(n-frame);
+    if(delta<distance){nearest=n;distance=delta}
+   }
+   if(nearest!==-1)paintFrame(nearest,readyImages.get(nearest));
+  }
   root.style.setProperty('--portal-scale',String(innerWidth/1280));
-  chapters.forEach((e,i)=>{
-   const visible=!moving&&index===i;
-   e.dataset.visible=String(visible);e.inert=!visible;e.setAttribute('aria-hidden',String(!visible));
-   e.style.setProperty('--chapter-opacity',visible?'1':'0');
-  });
-
-  const opacity=index===contentIndex&&!moving?1:0;
-  main.style.setProperty('--content-opacity',String(opacity));
   main.style.setProperty('--content-shift',`${-Math.max(0,boundary()-scrollY)}px`);
-  const ready=index===contentIndex&&!moving;
-  main.inert=!ready;root.classList.toggle('content-ready',ready);
-  back.disabled=moving||index===0;next.disabled=moving||index===contentIndex;
-  const label=index===contentIndex?'Inhalt':`${index+1} / ${contentIndex}`;
-  if(count.textContent!==label)count.textContent=label;
-  next.textContent=loading?'Lädt …':index===contentIndex-1?'Zum Inhalt →':'Weiter →';
-  status.textContent=loading?'Ansicht lädt …':moving?'Kamera fährt …':index===contentIndex?'Weiter zum Inhalt':matchMedia('(max-width:900px)').matches?'Wischen · nächste Station':'Scrollen oder wischen · eine Station weiter';
-  readingHint();updateMeetingPlayback();
+  const uiState=index+':'+moving+':'+loading;
+  if(uiState!==lastUiState){
+   lastUiState=uiState;
+   root.dataset.station=String(index);root.dataset.travelling=String(moving);
+   chapters.forEach((e,i)=>{
+    const visible=!moving&&index===i;
+    e.dataset.visible=String(visible);e.inert=!visible;e.setAttribute('aria-hidden',String(!visible));
+    e.style.setProperty('--chapter-opacity',visible?'1':'0');
+   });
+   const ready=index===contentIndex&&!moving;
+   main.style.setProperty('--content-opacity',ready?'1':'0');
+   main.inert=!ready;root.classList.toggle('content-ready',ready);
+   back.disabled=moving||index===0;next.disabled=moving||index===contentIndex;
+   const label=index===contentIndex?'Inhalt':`${index+1} / ${contentIndex}`;
+   if(count.textContent!==label)count.textContent=label;
+   next.textContent=loading?'Lädt …':index===contentIndex-1?'Zum Inhalt →':'Weiter →';
+   status.textContent=loading?'Ansicht lädt …':moving?'Kamera fährt …':index===contentIndex?'Weiter zum Inhalt':matchMedia('(max-width:900px)').matches?'Wischen · nächste Station':'Scrollen oder wischen · eine Station weiter';
+   readingHint();updateMeetingPlayback();
+  }
  }
  function go(target,instant=false,focus=false){
   if(!active||moving&&!instant)return;
@@ -231,14 +281,16 @@
    if(index===contentIndex)scrollTo({top:boundary(),behavior:'instant'});
    else chapters[index].scrollTop=0;
    draw();
+   if(index===contentIndex){warmToken++;warmedRange=''}else warmNextSegment();
    if(focus||index===contentIndex){const el=index===contentIndex?main:chapters[index];el.tabIndex=-1;el.focus({preventScroll:true})}
   };
   if(instant){finish();return}
   draw();
-  // Load only the upcoming segment, bounded by the cache, before its timed flight.
+  // Never hold the gesture until every intermediate image has arrived.
   const cap=frameVariant==='board/'?157:totalFrames;
   const first=Math.min(cap,1+Math.round(Math.min(from,to)*(totalFrames-1))),last=Math.min(cap,1+Math.round(Math.max(from,to)*(totalFrames-1)));
-  Promise.all(Array.from({length:last-first+1},(_,i)=>getFrame(first+i))).then(()=>{
+  warmFrames(first,last);
+  Promise.all([getFrame(first),getFrame(last)]).then(()=>{
    if(token!==generation||!active)return;
    loading=false;
    const started=performance.now(),duration=frameVariant==='board/'&&Math.max(target,previous)===contentIndex?1450:durations[Math.max(target,previous)];
@@ -330,7 +382,7 @@
  addEventListener('resize',()=>{
   const variant=frameDirectory();
   if(variant!==frameVariant){
-   frameVariant=variant;frameBase=new URL(canvas.dataset.frameBase+variant,document.baseURI);images.clear();boardData=null;
+   frameVariant=variant;frameBase=new URL(canvas.dataset.frameBase+variant,document.baseURI);images.clear();readyImages.clear();warmToken++;warmedRange='';boardData=null;
    // A rotation settles at the chosen station; stale landscape loads cannot draw over it.
    if(active){
     if(index!==contentIndex||moving){go(index,true);rememberStation();return}
@@ -354,6 +406,7 @@
     draw();
    }
    restoreReadingPosition();
+   warmNextSegment();
   }catch{fallback()}
  }
  document.addEventListener('kiwerk:events',()=>{if(active)draw();else returnHero()});
