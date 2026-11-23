@@ -51,11 +51,20 @@ class WebsiteRollforwardTests(unittest.TestCase):
             "2026-12-17": "https://78be9161.sibforms.com/serve/example"
         })
         online = next(e for e in events(date(2026, 11, 23), cfg) if e["format"] == "Online")
-        self.assertIn("Für Online-Treffen anmelden", row(online))
+        self.assertIn("Link per E-Mail erhalten", row(online))
         self.assertIn("https://78be9161.sibforms.com/serve/example", row(online))
         self.assertIn('rel="noopener noreferrer"', row(online))
         cfg["online"]["registration_urls"]["2026-12-17"] = "https://example.com/teams-secret"
         self.assertNotIn("teams-secret", row(next(e for e in events(date(2026, 11, 23), cfg) if e["format"] == "Online")))
+
+    def test_shared_online_signup_works_for_each_month(self):
+        cfg = dict(CONFIG, online=dict(CONFIG["online"], time="18:30 Uhr",
+                   registration_url="https://78be9161.sibforms.com/serve/example"))
+        online = [e for e in events(date(2026, 11, 23), cfg) if e["format"] == "Online"]
+        self.assertGreaterEqual(len(online), 2)
+        for event in online:
+            self.assertIn("Link per E-Mail erhalten", row(event))
+            self.assertIn("18:30 Uhr", row(event))
 
     def test_compact_upcoming_list_preserves_future_dates(self):
         future = events(date(2026, 11, 23), CONFIG)
