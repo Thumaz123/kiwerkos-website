@@ -60,9 +60,28 @@
   const today=todayISO(),events=upcoming(global.KIWERK_EVENTS,today,4),e=events[0];if(!e)return;
   document.querySelectorAll('[data-event-view]').forEach(view=>{
    renderHero(view,events,Math.max(0,events.findIndex(ev=>ev.date===selections.get(view))),today);
-   // Terminliste: Präsenz- und Online-Treffen gemeinsam, neu aufgebaut statt Zeile für Zeile überschrieben.
-   const rows=[...view.querySelectorAll('.event-row')];
-   if(rows.length){rows[0].before(...schedule(global.KIWERK_EVENTS,today,12).map(ev=>row(ev,today)));rows.forEach(r=>r.remove())}
+   // Keep the first three dates visible; preserve later dates in an accessible disclosure.
+   // This also upgrades an older cached static page that still has a flat list.
+   const list=view.querySelector('.event-list');
+   if(list){
+    let upcoming=list.querySelector('.event-list__upcoming');
+    let more=list.querySelector('.event-list__more');
+    let additional=list.querySelector('.event-list__additional');
+    if(!upcoming||!more||!additional){
+     upcoming=document.createElement('div');upcoming.className='event-list__upcoming';
+     more=document.createElement('details');more.className='event-list__more';
+     const summary=document.createElement('summary');summary.textContent='Weitere Termine anzeigen';
+     additional=document.createElement('div');additional.className='event-list__additional';
+     more.append(summary,additional);
+     const old=[...list.querySelectorAll('.event-row')],anchor=old[0]||list.querySelector('noscript');
+     if(anchor)anchor.before(upcoming,more);else list.append(upcoming,more);
+     old.forEach(item=>item.remove());
+    }
+    const entries=schedule(global.KIWERK_EVENTS,today,12).map(ev=>row(ev,today));
+    upcoming.replaceChildren(...entries.slice(0,3));
+    additional.replaceChildren(...entries.slice(3));
+    more.hidden=entries.length<=3;
+   }
   });
   document.querySelectorAll('[data-next-date]').forEach(node=>node.textContent=short(e.date)+e.date.slice(0,4));
   document.dispatchEvent(new Event('kiwerk:events'));
