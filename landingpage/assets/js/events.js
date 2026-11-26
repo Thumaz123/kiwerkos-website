@@ -15,7 +15,6 @@
   else if(e.status==='planned'&&!e.venue)lines=['Ort und Uhrzeit noch offen.',e.price>0?'Der Ticketlink folgt.':'Details und Teilnahme folgen.'];
   else{
    lines=[e.venue||'Ort folgt',e.time||'Uhrzeit folgt'];
-   if(e.price_note)lines.push(e.price_note);
    if(!compact){
     if(e.address)lines.splice(1,0,e.address);
     if(e.capacity)lines.push('Kapazität: '+e.capacity+' Personen');
