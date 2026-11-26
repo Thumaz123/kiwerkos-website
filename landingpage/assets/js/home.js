@@ -365,7 +365,11 @@
    return true;
   }
   const i=hash==='#inhalt'?contentIndex:!hash||hash==='#top'?0:chapters.findIndex(e=>`#${e.id}`===hash);
-  if(i<0||!active)return false;
+  if(!active){
+   if(detail && hash!==location.hash){detail.scrollIntoView({block:'start'});return true;}
+   return false;
+  }
+  if(i<0)return false;
   go(i,true,focus);return true;
  }
  document.addEventListener('click',event=>{
@@ -399,7 +403,7 @@
   if(active){if(index===contentIndex&&!moving&&scrollY<boundary())scrollTo(0,boundary());draw()}
  },{passive:true});
  async function configure(){
-  fallback();if(!ctx||!media.matches)return;
+  fallback();if(!ctx||!media.matches){fragment(location.hash);return;}
   const token=generation;
   try{
    const pageReady=document.readyState==='complete'?Promise.resolve():new Promise(resolve=>addEventListener('load',resolve,{once:true}));
@@ -414,7 +418,7 @@
    }
    restoreReadingPosition();
    warmNextSegment();
-  }catch{fallback()}
+  }catch{fallback();fragment(location.hash)}
  }
  document.addEventListener('kiwerk:events',()=>{if(active)draw();else returnHero()});
  media.addEventListener('change',configure);configure();
