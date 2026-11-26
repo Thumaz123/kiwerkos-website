@@ -132,14 +132,14 @@
   if(hadFocus)document.activeElement.scrollIntoView({block:'center'});
  }
  function rememberStation(){
-  const hash=index===contentIndex?'#inhalt':`#${chapters[index].id}`;
-  if(location.hash!==hash)history.replaceState(null,'',hash);
+  // Scroll-driven station changes must not rewrite the public URL.
+  history.replaceState({...history.state,homeStation:index},'',location.href);
  }
  function rememberReadingPosition(){
-  if(active&&index===contentIndex&&!moving)history.replaceState({homeScroll:scrollY},'',location.href);
+  if(active&&index===contentIndex&&!moving)history.replaceState({...history.state,homeScroll:scrollY,homeStation:index},'',location.href);
  }
  function restoreReadingPosition(){
-  if(active&&index===contentIndex&&location.hash==='#inhalt'&&Number.isFinite(history.state?.homeScroll)){
+  if(active&&index===contentIndex&&Number.isFinite(history.state?.homeScroll)){
    scrollTo({top:Math.max(boundary(),history.state.homeScroll),behavior:'instant'});draw();
   }
  }
@@ -311,7 +311,7 @@
  function inJourney(direction){return active&&(index<contentIndex||moving||(direction<0&&scrollY<=boundary()+2))}
  function canRead(target,direction){
   const box=target.closest?.('.film-chapter');
-  return box&&box.id!=='wow-treffen'&&!moving&&(direction>0?box.scrollTop+box.clientHeight<box.scrollHeight-2:box.scrollTop>2);
+  return box&&box.id!=='treffen'&&!moving&&(direction>0?box.scrollTop+box.clientHeight<box.scrollHeight-2:box.scrollTop>2);
  }
  addEventListener('wheel',event=>{
   if(menu.open)return;
@@ -355,7 +355,9 @@
  });
  back.addEventListener('click',()=>go(index-1));next.addEventListener('click',()=>go(index+1));
  function fragment(hash,focus=false){
-  const detail=hash&&document.querySelector(hash);
+  const aliases={"#wow-ankommen":"#willkommen","#wow-zeigen":"#projekte","#wow-ideen":"#ideen","#wow-ausprobieren":"#praxis","#wow-treffen":"#treffen","#wow-rueckblick":"#rueckblick"};
+  hash=aliases[hash]||hash;
+  const detail=hash&&document.getElementById(hash.slice(1));
   if(detail&&detail!==main&&main.contains(detail)&&active){
    go(contentIndex,true);
    detail.tabIndex=-1;
@@ -363,7 +365,11 @@
    return true;
   }
   const i=hash==='#inhalt'?contentIndex:!hash||hash==='#top'?0:chapters.findIndex(e=>`#${e.id}`===hash);
-  if(i<0||!active)return false;
+  if(!active){
+   if(detail && hash!==location.hash){detail.scrollIntoView({block:'start'});return true;}
+   return false;
+  }
+  if(i<0)return false;
   go(i,true,focus);return true;
  }
  document.addEventListener('click',event=>{
@@ -397,7 +403,7 @@
   if(active){if(index===contentIndex&&!moving&&scrollY<boundary())scrollTo(0,boundary());draw()}
  },{passive:true});
  async function configure(){
-  fallback();if(!ctx||!media.matches)return;
+  fallback();if(!ctx||!media.matches){fragment(location.hash);return;}
   const token=generation;
   try{
    const pageReady=document.readyState==='complete'?Promise.resolve():new Promise(resolve=>addEventListener('load',resolve,{once:true}));
@@ -406,13 +412,13 @@
    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
    if(token!==generation||!media.matches)return;
    active=true;index=0;progress=0;root.classList.add('film-active');
-   if(!fragment(location.hash)){
+   if(!fragment(location.hash || (Number.isInteger(history.state?.homeStation) ? (history.state.homeStation===contentIndex?'#inhalt':chapters[history.state.homeStation]?'#'+chapters[history.state.homeStation].id:'') : ''))){
     if(scrollY>=boundary()-2){index=contentIndex;progress=1}
     draw();
    }
    restoreReadingPosition();
    warmNextSegment();
-  }catch{fallback()}
+  }catch{fallback();fragment(location.hash)}
  }
  document.addEventListener('kiwerk:events',()=>{if(active)draw();else returnHero()});
  media.addEventListener('change',configure);configure();
