@@ -1,6 +1,8 @@
 name: KIWERK gezielte Veröffentlichung
 on:
   workflow_dispatch:
+  push:
+    branches: [production]
 permissions:
   contents: read
 concurrency:
@@ -16,6 +18,8 @@ jobs:
           persist-credentials: false
       - name: Aktuelle KIWERK-Termine vor dem Upload generieren
         run: python3 scripts/rollforward_website.py
+      - name: Validate website package
+        run: python3 build_deploy.py --check
       - run: sudo apt-get update && sudo apt-get install -y python3-paramiko
       - name: Geprüfte Änderungen sichern und veröffentlichen
         env:
